@@ -1,0 +1,90 @@
+1)	Create Ec2 Instance
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.ubuntu.id(copy in ec2)
+  instance_type = "t3.micro"
+
+  tags = {
+    Name = "Nexsoft"
+  }
+}
+
+Now want to create 10 ec2 instances at a time
+
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.ubuntu.id(copy in ec2)
+  instance_type = "t3.micro"
+  Count = 10 
+
+  tags = {
+    Name = "Nexsoft"
+  }
+}
+
+2)	Now I want to change config from t3.micro to t2.small
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.ubuntu.id(copy in ec2)
+  instance_type = "t2.small"
+  Count = 10 
+
+  tags = {
+    Name = "Nexsoft"
+  }
+}
+
+3)	Now adding security group
+
+
+Go though below link for the script 
+
+https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+
+a)	Check the basic details and fill in the terraform file
+b)	Add VPC ID copy from ec2
+c)	Next Inbound and outbound rules to add similar with ingrees and egresss
+d)	So now create 3 security in the group for allowing HTTP/HTTPS/SSH traffic in various ports
+ resource  "aws_security_group" "TF_SG" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.main.id(copy VPC ID from ec2)
+
+  ingress {
+    description      = "HTTPS"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+ingress {
+    description      = "HTTP"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+ingress {
+    description      = "SSH"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  egress {
+   from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  tags = {
+    Name = "TF_SG"
+  }
+}
+To Add security group to our instance
+Use parameter 
+Security_groups = [“aws_security_group.TF_SG.name”]
+
+Now apply the terraform a securitry group created in your instance
